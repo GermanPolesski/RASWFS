@@ -1,43 +1,100 @@
+#include <ctime>
+#include <cstdlib>
 #include <iostream>
+#include <cstring>
 using namespace std;
 
-int getHoarBorder(int A[], int sm, int em) {
-    int i = sm - 1, j = em + 1;
-    int brd = A[sm], buf;
-    while (true) {
-        do { j--; } while (A[j] > brd);
-        do { i++; } while (A[i] < brd);
-        if (i < j) {
-            buf = A[j];
-            A[j] = A[i];
-            A[i] = buf;
-        } else {
-            return j;
-        }
-    }
+// Вспомогательная функция для обмена элементов
+void swap(int& a, int& b) {
+    int t = a;
+    a = b;
+    b = t;
 }
 
-void sortHoar(int A[], int sm, int em) {
-    if (sm < em) {
-        int hb = getHoarBorder(A, sm, em);
-        sortHoar(A, sm, hb);
-        sortHoar(A, hb + 1, em);
+// Сортировка выбором (Selection Sort)
+int* sort1(int m[], int lm) {
+    for (int i = 0; i < lm - 1; i++) {
+        int min_index = i;
+        for (int j = i + 1; j < lm; j++) {
+            if (m[j] < m[min_index]) {
+                min_index = j;
+            }
+        }
+        if (min_index != i) {
+            swap(m[i], m[min_index]);
+        }
     }
+    return m;
+}
+
+// Вспомогательная функция для быстрой сортировки
+void quickSort(int arr[], int left, int right) {
+    if (left >= right) return;
+    
+    int mid = left + (right - left) / 2;
+    
+    // Упорядочиваем left, mid, right для выбора медианы
+    if (arr[left] > arr[mid]) swap(arr[left], arr[mid]);
+    if (arr[left] > arr[right]) swap(arr[left], arr[right]);
+    if (arr[mid] > arr[right]) swap(arr[mid], arr[right]);
+    
+    int pivot = arr[mid];
+    int i = left, j = right;
+    
+    while (i <= j) {
+        while (arr[i] < pivot) i++;
+        while (arr[j] > pivot) j--;
+        if (i <= j) {
+            swap(arr[i], arr[j]);
+            i++;
+            j--;
+        }
+    }
+    
+    quickSort(arr, left, j);
+    quickSort(arr, i, right);
+}
+
+// Быстрая сортировка (Quick Sort)
+int* sort2(int m[], int lm) {
+    quickSort(m, 0, lm - 1);
+    return m;
+}
+
+// Генерация случайных чисел
+int getRandKey(int reg = 0) {
+    if (reg > 0)
+        srand((unsigned)time(NULL));
+    int rmin = 0, rmax = 100000;
+    return (int)(((double)rand() / (double)RAND_MAX) * (rmax - rmin) + rmin);
 }
 
 int main() {
-    setlocale(LC_ALL, "Rus");
-    int size, i, A[100];
-    cout << "Количество элементов = ";
-    cin >> size;
-    for (i = 0; i < size; i++) {
-        cout << i + 1 << " элемент = ";
-        cin >> A[i];
+    setlocale(LC_CTYPE, "Russian");
+    const int N = 50000;
+    int k[N], f[N];
+    clock_t t1, t2;
+    
+    getRandKey(1);
+    for (int i = 0; i < N; i++)
+        f[i] = getRandKey(0);
+    
+    for (int n = 10000; n <= N; n += 10000) {
+        cout << "n = " << n << endl;
+        
+        cout << "Сортировка 1 ";
+        memcpy(k, f, n * sizeof(int));
+        t1 = clock();
+        sort1(k, n);
+        t2 = clock();
+        cout << "Прошло " << t2 - t1 << " тактов времени" << endl;
+        
+        cout << "Сортировка 2 ";
+        memcpy(k, f, n * sizeof(int));
+        t1 = clock();
+        sort2(k, n);
+        t2 = clock();
+        cout << "Прошло " << t2 - t1 << " тактов времени" << endl << endl;
     }
-    sortHoar(A, 0, size - 1);
-    cout << "Результирующий массив: ";
-    for (i = 0; i < size; i++)
-        cout << A[i] << " ";
-    cout << endl;
     return 0;
 }
